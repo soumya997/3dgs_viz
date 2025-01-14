@@ -67,50 +67,36 @@
   </div>
 
   <script>
-    async function fetchFiles(folder) {
-      const response = await fetch(folder);
-      const text = await response.text();
-      const parser = new DOMParser();
-      const html = parser.parseFromString(text, 'text/html');
-      return Array.from(html.querySelectorAll('a'))
-        .map(link => link.href)
-        .filter(href => href.endsWith('.html') || href.endsWith('.jpg'))
-        .map(href => href.split('/').pop());
-    }
+    const models = [
+      { name: "canvas_model", path: "./models/canvas_model.html", thumbnail: "./thumbnails/canvas_model.jpg" },
+      { name: "new_canvas_model1", path: "./models/new_canvas_model1.html", thumbnail: "./thumbnails/new_canvas_model1.jpg" },
+      { name: "canvas_model2", path: "./models/canvas_model2.html", thumbnail: "./thumbnails/canvas_model2.jpg" },
+      { name: "another_new_canvas_model1", path: "./models/another_new_canvas_model1.html", thumbnail: "./thumbnails/another_new_canvas_model1.jpg" }
+    ];
 
-    async function populateGallery() {
+    function populateGallery() {
       const gallery = document.getElementById("gallery");
-      const modelFiles = await fetchFiles('./models/');
-      const thumbnailFiles = await fetchFiles('./thumbnails/');
 
-      const models = modelFiles.filter(file => file.endsWith('.html'));
+      models.forEach(({ name, path, thumbnail }) => {
+        // Create gallery item
+        const item = document.createElement("div");
+        item.classList.add("gallery-item");
+        item.onclick = () => window.location.href = path;
 
-      models.forEach(model => {
-        const modelName = model.replace('.html', '');
-        const modelPath = `./models/${model}`;
-        const thumbnailPath = `./thumbnails/${modelName}.jpg`;
+        // Add thumbnail
+        const img = document.createElement("img");
+        img.src = thumbnail;
+        img.alt = name;
+        item.appendChild(img);
 
-        if (thumbnailFiles.includes(`${modelName}.jpg`)) {
-          // Create gallery item
-          const item = document.createElement("div");
-          item.classList.add("gallery-item");
-          item.onclick = () => window.location.href = modelPath;
+        // Add title
+        const title = document.createElement("div");
+        title.classList.add("title");
+        title.textContent = name;
+        item.appendChild(title);
 
-          // Add thumbnail
-          const img = document.createElement("img");
-          img.src = thumbnailPath;
-          img.alt = modelName;
-          item.appendChild(img);
-
-          // Add title
-          const title = document.createElement("div");
-          title.classList.add("title");
-          title.textContent = modelName;
-          item.appendChild(title);
-
-          // Append item to gallery
-          gallery.appendChild(item);
-        }
+        // Append item to gallery
+        gallery.appendChild(item);
       });
     }
 
