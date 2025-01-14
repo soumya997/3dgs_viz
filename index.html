@@ -23,11 +23,12 @@
 
     .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
       padding: 20px;
       width: 100%;
       max-width: 1200px;
+      justify-items: center;
     }
 
     .gallery-item {
@@ -37,8 +38,8 @@
       border-radius: 8px;
       background: #1e1e1e;
       transition: transform 0.2s;
-      width: 100%;
-      aspect-ratio: 1 / 1;
+      width: 200px;
+      height: 200px;
     }
 
     .gallery-item:hover {
@@ -66,33 +67,50 @@
   </div>
 
   <script>
-    const models = [
-      { name: "canvas_model", modelPath: "./models/canvas_model.html", thumbnailPath: "./thumbnails/canvas_model.jpg" }
-    ];
+    async function fetchFiles(folder) {
+      const response = await fetch(folder);
+      const text = await response.text();
+      const parser = new DOMParser();
+      const html = parser.parseFromString(text, 'text/html');
+      return Array.from(html.querySelectorAll('a'))
+        .map(link => link.href)
+        .filter(href => href.endsWith('.html') || href.endsWith('.jpg'))
+        .map(href => href.split('/').pop());
+    }
 
-    function populateGallery() {
+    async function populateGallery() {
       const gallery = document.getElementById("gallery");
+      const modelFiles = await fetchFiles('./models/');
+      const thumbnailFiles = await fetchFiles('./thumbnails/');
 
-      models.forEach(({ name, modelPath, thumbnailPath }) => {
-        // Create gallery item
-        const item = document.createElement("div");
-        item.classList.add("gallery-item");
-        item.onclick = () => window.location.href = modelPath;
+      const models = modelFiles.filter(file => file.endsWith('.html'));
 
-        // Add thumbnail
-        const img = document.createElement("img");
-        img.src = thumbnailPath;
-        img.alt = name;
-        item.appendChild(img);
+      models.forEach(model => {
+        const modelName = model.replace('.html', '');
+        const modelPath = `./models/${model}`;
+        const thumbnailPath = `./thumbnails/${modelName}.jpg`;
 
-        // Add title
-        const title = document.createElement("div");
-        title.classList.add("title");
-        title.textContent = name;
-        item.appendChild(title);
+        if (thumbnailFiles.includes(`${modelName}.jpg`)) {
+          // Create gallery item
+          const item = document.createElement("div");
+          item.classList.add("gallery-item");
+          item.onclick = () => window.location.href = modelPath;
 
-        // Append item to gallery
-        gallery.appendChild(item);
+          // Add thumbnail
+          const img = document.createElement("img");
+          img.src = thumbnailPath;
+          img.alt = modelName;
+          item.appendChild(img);
+
+          // Add title
+          const title = document.createElement("div");
+          title.classList.add("title");
+          title.textContent = modelName;
+          item.appendChild(title);
+
+          // Append item to gallery
+          gallery.appendChild(item);
+        }
       });
     }
 
